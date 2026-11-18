@@ -1,0 +1,6 @@
+# Copy to local.properties (git-ignored) and fill in real values.
+spring.datasource.url=jdbc:postgresql://localhost:5432/erm_mbplc_dev
+spring.datasource.username=CHANGE_ME
+spring.datasource.password=CHANGE_ME
+# min. 12 characters; leave empty to get a random one-time password in the start-up log
+app.bootstrap.admin-password=

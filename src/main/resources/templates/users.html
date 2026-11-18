@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('User access')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+    <div class="eyebrow">GOVERNANCE</div>
+    <h1>User access</h1>
+    <p class="muted">Logins, roles and the employee record each login belongs to. The employee link is required for approvals, "my work" and credential verification (maker-checker). Role changes apply at the user's next sign-in.</p>
+
+    <section class="panel mt-4">
+        <h5>Create login</h5>
+        <p class="muted">Password: at least 12 characters with upper-case, lower-case and a digit.</p>
+        <form method="post" th:action="@{/users}" class="form-grid" autocomplete="off">
+            <input name="username" placeholder="Username" required minlength="3" maxlength="50">
+            <input name="password" type="password" placeholder="Initial password" required minlength="12" autocomplete="new-password">
+            <select name="role" required>
+                <option th:each="r : ${roles}" th:value="${r}" th:text="${#strings.replace(r,'ROLE_','')}" th:selected="${r == 'ROLE_USER'}"></option>
+            </select>
+            <select name="employeeCode">
+                <option value="">Employee record (optional)</option>
+                <option th:each="e : ${employees}" th:value="${e.employeeCode}" th:text="${e.employeeCode + ' - ' + e.fullName}"></option>
+            </select>
+            <button type="submit" class="btn btn-primary">Create login</button>
+        </form>
+    </section>
+
+    <section class="panel mt-3">
+        <div class="panel-head"><h5>Logins</h5><span class="muted" th:text="${#lists.size(users)} + ' account(s)'"></span></div>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                <tr><th>Username</th><th>Role</th><th>Employee</th><th>Status</th><th>Reset password</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="u : ${users}">
+                    <td><strong th:text="${u.username}"></strong></td>
+                    <td>
+                        <form th:action="@{/users/{id}/role(id=${u.id})}" method="post" class="d-flex gap-1">
+                            <select name="role" class="form-select form-select-sm">
+                                <option th:each="r : ${roles}" th:value="${r}" th:text="${#strings.replace(r,'ROLE_','')}" th:selected="${r == u.role}"></option>
+                            </select>
+                            <button class="btn btn-sm btn-outline-primary">Set</button>
+                        </form>
+                    </td>
+                    <td>
+                        <form th:action="@{/users/{id}/employee(id=${u.id})}" method="post" class="d-flex gap-1">
+                            <select name="employeeCode" class="form-select form-select-sm">
+                                <option value="">— none —</option>
+                                <option th:each="e : ${employees}" th:value="${e.employeeCode}" th:text="${e.employeeCode + ' - ' + e.fullName}" th:selected="${e.employeeCode == u.employeeCode}"></option>
+                            </select>
+                            <button class="btn btn-sm btn-outline-primary">Link</button>
+                        </form>
+                    </td>
+                    <td>
+                        <form th:action="@{/users/{id}/enabled(id=${u.id})}" method="post" class="d-flex gap-2 align-items-center">
+                            <span class="badge" th:classappend="${u.enabled} ? 'bg-success' : 'bg-secondary'" th:text="${u.enabled} ? 'Enabled' : 'Disabled'"></span>
+                            <input type="hidden" name="enabled" th:value="${!u.enabled}">
+                            <button class="btn btn-sm btn-outline-secondary" th:text="${u.enabled} ? 'Disable' : 'Enable'"
+                                    th:attr="data-confirm=${u.enabled} ? 'Disable this login?' : null"></button>
+                        </form>
+                    </td>
+                    <td>
+                        <form th:action="@{/users/{id}/password(id=${u.id})}" method="post" class="d-flex gap-1" autocomplete="off">
+                            <input name="password" type="password" class="form-control form-control-sm" placeholder="New password" minlength="12" required autocomplete="new-password">
+                            <button class="btn btn-sm btn-outline-danger">Reset</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

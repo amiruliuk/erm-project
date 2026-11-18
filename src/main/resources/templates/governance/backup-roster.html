@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Backup & succession roster')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+    <div class="eyebrow">GOVERNANCE · CBS-GOV-003</div>
+    <h1>Backup &amp; succession roster</h1>
+    <p class="muted">
+        Critical activities with their primary and two backups, the most recent
+        backup-readiness test, and the mitigation plan for any key-person dependency.
+    </p>
+
+    <!-- ===================================================== Backup roster -->
+    <div class="board-toolbar">
+        <span class="pill">Critical activities</span>
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="search" placeholder="Search activities..." data-table-search="#rosterRows">
+        </div>
+    </div>
+
+    <section class="panel mt-3">
+        <div class="panel-head">
+            <h5>Roster</h5>
+            <span class="muted">Primary · Backup 1 · Backup 2 · Last readiness test</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Critical activity</th>
+                    <th>Primary</th>
+                    <th>Backup 1</th>
+                    <th>Backup 2</th>
+                    <th>Last readiness test</th>
+                    <th>Result</th>
+                    <th>Evidence</th>
+                    <th th:if="${canGovern}">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="rosterRows">
+                <tr th:each="r : ${rosters}">
+                    <td th:text="${r.activity.name}"></td>
+                    <td th:text="${r.primaryPerson.fullName}"></td>
+                    <td th:text="${r.backup1 != null ? r.backup1.fullName : '—'}"></td>
+                    <td th:text="${r.backup2 != null ? r.backup2.fullName : '—'}"></td>
+                    <td th:text="${r.lastTest != null ? r.lastTest.testedOn : 'Never tested'}"></td>
+                    <td>
+                        <span th:if="${r.lastTest == null}" class="status-pill"
+                              style="background:#e9ecef;color:#495057">NOT TESTED</span>
+                        <span th:if="${r.lastTest != null and r.lastTest.result.name() == 'PASS'}"
+                              class="status-pill" style="background:#d1e7dd;color:#0f5132">PASS</span>
+                        <span th:if="${r.lastTest != null and r.lastTest.result.name() == 'PARTIAL'}"
+                              class="status-pill" style="background:#fff3cd;color:#664d03">PARTIAL</span>
+                        <span th:if="${r.lastTest != null and r.lastTest.result.name() == 'FAIL'}"
+                              class="status-pill" style="background:#f8d7da;color:#842029">FAIL</span>
+                    </td>
+                    <td>
+                        <a th:if="${r.lastTest != null and r.lastTest.evidence != null and r.lastTest.evidence.fileName != null}"
+                           th:href="@{/evidence/{id}/download(id=${r.lastTest.evidence.id})}"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-paperclip"></i>
+                        </a>
+                        <span th:unless="${r.lastTest != null and r.lastTest.evidence != null and r.lastTest.evidence.fileName != null}" class="muted">—</span>
+                    </td>
+                    <td th:if="${canGovern}">
+                        <div class="d-flex gap-1">
+                            <a class="btn btn-sm btn-outline-primary" th:if="${canManage}"
+                               th:href="@{/governance/roster/{id}/test/new(id=${r.id})}">
+                                Record test
+                            </a>
+                            <a class="btn btn-sm btn-outline-secondary"
+                               th:href="@{/governance/roster/{id}/tests(id=${r.id})}">
+                                History
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(rosters)}">
+                    <td colspan="8" class="muted">No critical activities recorded yet.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ===================================================== Set roster -->
+    <section class="panel mt-4" th:if="${canManage}">
+        <h5>Assign primary and backups</h5>
+        <p class="muted">One row per critical activity. Saving again for the same activity replaces its roster.</p>
+        <form method="post" th:action="@{/governance/roster}" class="form-grid">
+            <select name="activityId" required>
+                <option value="">Critical activity</option>
+                <option th:each="s : ${criticalSkills}" th:value="${s.id}" th:text="${s.name}"></option>
+            </select>
+            <select name="primaryId" required>
+                <option value="">Primary</option>
+                <option th:each="e : ${employees}" th:value="${e.id}"
+                        th:text="${e.employeeCode + ' — ' + e.fullName}"></option>
+            </select>
+            <select name="backup1Id">
+                <option value="">Backup 1</option>
+                <option th:each="e : ${employees}" th:value="${e.id}"
+                        th:text="${e.employeeCode + ' — ' + e.fullName}"></option>
+            </select>
+            <select name="backup2Id">
+                <option value="">Backup 2 (optional)</option>
+                <option th:each="e : ${employees}" th:value="${e.id}"
+                        th:text="${e.employeeCode + ' — ' + e.fullName}"></option>
+            </select>
+            <button type="submit" class="btn btn-primary">Save roster</button>
+        </form>
+    </section>
+
+    <!-- ===================================================== Mitigation plan -->
+    <div class="board-toolbar mt-4">
+        <span class="pill">Mitigation &amp; cross-training</span>
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="search" placeholder="Search plans..." data-table-search="#planRows">
+        </div>
+    </div>
+
+    <section class="panel mt-3">
+        <div class="panel-head">
+            <h5>Cross-training plan</h5>
+            <span class="muted">Dependency · Action · Owner · Target date · Status</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Dependency</th>
+                    <th>Action</th>
+                    <th>Owner</th>
+                    <th>Target date</th>
+                    <th>Status</th>
+                    <th th:if="${canManage}">Update</th>
+                </tr>
+                </thead>
+                <tbody id="planRows">
+                <tr th:each="p : ${plans}">
+                    <td th:text="${p.dependency.name}"></td>
+                    <td th:text="${p.action}"></td>
+                    <td th:text="${p.owner.fullName}"></td>
+                    <td th:text="${p.targetDate}"></td>
+                    <td>
+                        <span th:if="${p.status.name() == 'PLANNED'}" class="status-pill"
+                              style="background:#e9ecef;color:#495057">PLANNED</span>
+                        <span th:if="${p.status.name() == 'IN_PROGRESS'}" class="status-pill"
+                              style="background:#cfe2ff;color:#084298">IN PROGRESS</span>
+                        <span th:if="${p.status.name() == 'DONE'}" class="status-pill"
+                              style="background:#d1e7dd;color:#0f5132">DONE</span>
+                        <span th:if="${p.status.name() == 'OVERDUE'}" class="status-pill"
+                              style="background:#f8d7da;color:#842029">OVERDUE</span>
+                    </td>
+                    <td th:if="${canManage}">
+                        <form th:action="@{/governance/plan/{id}/status(id=${p.id})}" method="post"
+                              class="d-flex gap-1">
+                            <select name="status" class="form-select form-select-sm">
+                                <option value="PLANNED"     th:selected="${p.status.name() == 'PLANNED'}">PLANNED</option>
+                                <option value="IN_PROGRESS" th:selected="${p.status.name() == 'IN_PROGRESS'}">IN PROGRESS</option>
+                                <option value="DONE"        th:selected="${p.status.name() == 'DONE'}">DONE</option>
+                                <option value="OVERDUE"     th:selected="${p.status.name() == 'OVERDUE'}">OVERDUE</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Set</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(plans)}">
+                    <td colspan="6" class="muted">No mitigation plans yet.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ===================================================== New plan form -->
+    <section class="panel mt-4" th:if="${canManage}">
+        <h5>Add mitigation plan</h5>
+        <form method="post" th:action="@{/governance/plan}" class="form-grid">
+            <select name="dependencyId" required>
+                <option value="">Critical skill / dependency</option>
+                <option th:each="s : ${criticalSkills}" th:value="${s.id}" th:text="${s.name}"></option>
+            </select>
+            <input name="action" placeholder="Action (e.g. shadow two releases)" required>
+            <select name="ownerId" required>
+                <option value="">Owner</option>
+                <option th:each="e : ${employees}" th:value="${e.id}"
+                        th:text="${e.employeeCode + ' — ' + e.fullName}"></option>
+            </select>
+            <input type="date" name="targetDate" required>
+            <select name="status">
+                <option value="PLANNED">PLANNED</option>
+                <option value="IN_PROGRESS">IN PROGRESS</option>
+                <option value="DONE">DONE</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Add plan</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

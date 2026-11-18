@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My account')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+    <div class="eyebrow">ACCOUNT</div>
+    <h1>My account</h1>
+    <p class="muted">Signed in as <strong th:text="${currentUser}">user</strong> &middot; <span th:text="${currentRole}">Role</span></p>
+
+    <section class="panel mt-4">
+        <h5>Change password</h5>
+        <p class="muted">At least 12 characters with upper-case, lower-case and a digit. Accounts that sign in through the directory (LDAP) change their password there.</p>
+        <form method="post" th:action="@{/account/password}" class="form-grid" autocomplete="off">
+            <input name="currentPassword" type="password" placeholder="Current password" required autocomplete="current-password">
+            <input name="newPassword" type="password" placeholder="New password" required minlength="12" autocomplete="new-password">
+            <input name="confirmPassword" type="password" placeholder="Repeat new password" required minlength="12" autocomplete="new-password">
+            <button type="submit" class="btn btn-primary">Change password</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Readiness test history')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+    <div class="eyebrow">GOVERNANCE · CBS-GOV-003</div>
+    <h1>Readiness test history</h1>
+
+    <section class="panel mt-3">
+        <div class="panel-head">
+            <h5 th:text="${roster.activity.name}"></h5>
+            <span class="muted" th:text="'Primary: ' + ${roster.primaryPerson.fullName}"></span>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Tested on</th>
+                    <th>Performed by</th>
+                    <th>Result</th>
+                    <th>Notes</th>
+                    <th>Evidence</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${tests}">
+                    <td th:text="${t.testedOn}"></td>
+                    <td th:text="${t.performedBy.fullName}"></td>
+                    <td>
+                        <span th:if="${t.result.name() == 'PASS'}" class="status-pill"
+                              style="background:#d1e7dd;color:#0f5132">PASS</span>
+                        <span th:if="${t.result.name() == 'PARTIAL'}" class="status-pill"
+                              style="background:#fff3cd;color:#664d03">PARTIAL</span>
+                        <span th:if="${t.result.name() == 'FAIL'}" class="status-pill"
+                              style="background:#f8d7da;color:#842029">FAIL</span>
+                    </td>
+                    <td th:text="${t.notes != null ? t.notes : '—'}"></td>
+                    <td>
+                        <a th:if="${t.evidence != null and t.evidence.fileName != null}"
+                           th:href="@{/evidence/{id}/download(id=${t.evidence.id})}"
+                           class="btn btn-sm btn-outline-primary"><i class="bi bi-paperclip"></i></a>
+                        <span th:unless="${t.evidence != null and t.evidence.fileName != null}" class="muted">—</span>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(tests)}">
+                    <td colspan="5" class="muted">No readiness test has been recorded for this activity.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <a class="btn btn-outline-secondary mt-2" th:href="@{/governance/backup-roster}">Back to roster</a>
+    </section>
+</main>
+</body>
+</html>

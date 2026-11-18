@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('People & organization')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+    <div class="eyebrow">MANAGEMENT</div>
+    <h1>People &amp; organization</h1>
+
+    <!-- Create employee (admin only) -->
+    <section class="panel mt-4" th:if="${canAdmin}">
+        <h5>Create employee</h5>
+        <form method="post" th:action="@{/employees}" class="form-grid" enctype="multipart/form-data">
+            <input name="employeeCode" placeholder="Employee code" required>
+            <input name="fullName" placeholder="Full name" required>
+            <input name="email" type="email" placeholder="Email" required>
+            <input name="jobTitle" placeholder="Job title">
+            <select name="departmentId" data-dept-select>
+                <option value="">Department</option>
+                <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}"></option>
+            </select>
+            <select name="unitId" data-unit-select>
+                <option value="">Unit</option>
+                <option th:each="u : ${units}" th:if="${u.active}" th:value="${u.id}" th:text="${u.name}"
+                        th:attr="data-dept=${u.department.id}"></option>
+            </select>
+            <input type="file" name="photo" accept="image/png,image/jpeg,image/webp">
+            <button type="submit" class="btn btn-primary">Add employee</button>
+        </form>
+    </section>
+
+    <div class="board-toolbar">
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+            <span class="pill">People directory</span>
+            <div th:replace="~{fragments/layout :: unitFilter('/employees')}"></div>
+        </div>
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="search" placeholder="Search employees..." data-table-search="#employeeRows">
+        </div>
+    </div>
+
+    <!-- Employee list -->
+    <section class="panel mt-3">
+        <div class="panel-head">
+            <h5>Records</h5>
+            <span class="muted">Live database records</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Photo</th>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Job title</th>
+                    <th>Email</th>
+                    <th>Department</th>
+                    <th>Unit</th>
+                    <th>Status</th>
+                    <th th:if="${canAdmin}">Change status</th>
+                    <th th:if="${canAdmin}">Move (department / unit)</th>
+                    <th th:if="${canAdmin}">Change photo</th>
+                </tr>
+                </thead>
+                <tbody id="employeeRows">
+                <tr th:each="e : ${employees}">
+                    <td>
+                        <img th:if="${e.photoFileName != null}"
+                             th:src="@{/employees/{id}/photo(id=${e.id})}"
+                             width="40" height="40"
+                             style="border-radius:50%;object-fit:cover" alt="">
+                        <span th:unless="${e.photoFileName != null}" class="muted">No photo</span>
+                    </td>
+                    <td th:text="${e.employeeCode}"></td>
+                    <td th:text="${e.fullName}"></td>
+                    <td th:text="${e.jobTitle}"></td>
+                    <td th:text="${e.email}"></td>
+                    <td th:text="${e.department != null ? e.department.name : '—'}"></td>
+                    <td th:text="${e.unit != null ? e.unit.name : '—'}"></td>
+                    <td><span class="status-pill" th:text="${e.employmentStatus}"></span></td>
+                    <td th:if="${canAdmin}">
+                        <form th:action="@{/employees/{id}/status(id=${e.id})}" method="post" class="d-flex gap-1">
+                            <select name="status" class="form-select form-select-sm">
+                                <option th:each="s : ${employmentStatuses}" th:value="${s}" th:text="${s}" th:selected="${s == e.employmentStatus}"></option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Set</button>
+                        </form>
+                    </td>
+                    <td th:if="${canAdmin}">
+                        <form th:action="@{/employees/{id}/assign(id=${e.id})}" method="post" class="d-flex gap-1">
+                            <select name="departmentId" class="form-select form-select-sm" data-dept-select>
+                                <option value="">Department</option>
+                                <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}"
+                                        th:selected="${e.department != null and e.department.id == d.id}"></option>
+                            </select>
+                            <select name="unitId" class="form-select form-select-sm" data-unit-select>
+                                <option value="">Unit</option>
+                                <option th:each="u : ${units}" th:if="${u.active or (e.unit != null and e.unit.id == u.id)}"
+                                        th:value="${u.id}" th:text="${u.name}" th:attr="data-dept=${u.department.id}"
+                                        th:selected="${e.unit != null and e.unit.id == u.id}"></option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Move</button>
+                        </form>
+                    </td>
+                    <td th:if="${canAdmin}">
+                        <form th:action="@{/employees/{id}/photo(id=${e.id})}" method="post"
+                              enctype="multipart/form-data">
+                            <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" required>
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Upload</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+
+</html>

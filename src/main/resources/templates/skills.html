@@ -1,0 +1,62 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Skills & competency')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+    <div class="eyebrow">MANAGEMENT</div>
+    <h1>Skills & competency</h1>
+    <section class="panel mt-4" th:if="${canManage}">
+        <h5>Create / update</h5>
+        <form method="post" th:action="@{/skills}" class="form-grid">
+            <input name="name" placeholder="Skill name" required /><input
+                name="category"
+                placeholder="Category"
+        /><button class="btn btn-primary">Add skill</button>
+        </form>
+        <h6 class="mt-4">Record employee proficiency</h6>
+        <form method="post" th:action="@{/skills/assess}" class="form-grid">
+            <select name="employeeId" required>
+                <option value="">Employee</option>
+                <option th:each="e:${employees}" th:value="${e.id}" th:text="${e.fullName}"></option></select
+            ><select name="skillId" required>
+            <option value="">Skill</option>
+            <option th:each="s:${skills}" th:value="${s.id}" th:text="${s.name}"></option></select
+        ><select name="proficiency">
+            <option value="1">1 - Beginner</option>
+            <option value="2">2 - Basic</option>
+            <option value="3">3 - Intermediate</option>
+            <option value="4">4 - Advanced</option>
+            <option value="5">5 - Expert</option></select
+        ><button class="btn btn-outline-primary">Save assessment</button>
+        </form>
+    </section>
+    <div class="board-toolbar"><span class="pill">Board records</span><div class="search-box"><i class="bi bi-search"></i><input type="search" placeholder="Search skill assessments..." data-table-search="#skillRows"></div></div><section class="panel mt-3">
+        <div class="panel-head">
+            <h5>Records</h5>
+            <span class="muted">Live database records</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Skill</th>
+                    <th>Level</th>
+                    <th>Evidence</th>
+                </tr>
+                </thead>
+                <tbody id="skillRows">
+                <tr th:each="es:${employeeSkills}">
+                    <td th:text="${es.employee.fullName}"></td>
+                    <td th:text="${es.skill.name}"></td>
+                    <td><span class="tag" th:text="|${es.proficiency} / 5|"></span></td>
+                    <td th:text="${es.evidence}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

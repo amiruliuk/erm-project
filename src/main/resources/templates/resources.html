@@ -1,0 +1,26 @@
+<!DOCTYPE html><html xmlns:th="http://www.thymeleaf.org"><head th:replace="~{fragments/layout :: head('Resource planning')}"></head><body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+<div class="eyebrow">WORKSPACE / RESOURCES</div>
+<div class="board-title-row"><div><h1>Resource planning &amp; allocation</h1><p class="muted mb-0">Allocate people to projects with date-based capacity validation.</p></div><a href="#allocate" th:if="${canManage}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> New allocation</a></div>
+<div class="board-toolbar"><div class="d-flex gap-2 align-items-center flex-wrap"><span class="pill">Allocations</span><div th:replace="~{fragments/layout :: unitFilter('/resources')}"></div><span class="muted" th:text="${#lists.size(allocations)} + ' records'"></span></div><div class="search-box"><i class="bi bi-search"></i><input type="search" placeholder="Search allocations..." data-table-search="#allocationRows"></div></div>
+<section class="panel board-panel"><div class="panel-head"><div><h5>Current allocations</h5><p class="muted mb-0">Overlapping allocations for one employee cannot exceed 100%.</p></div></div>
+<div class="table-responsive border-0 rounded-0"><table class="table align-middle">
+ <thead><tr><th>Employee</th><th>Project</th><th>Period</th><th>Allocation</th><th>Notes</th><th th:if="${canManage}"></th></tr></thead>
+ <tbody id="allocationRows">
+  <tr th:each="a:${allocations}">
+   <td th:text="${a.employee.fullName}"></td><td th:text="${a.project.name}"></td>
+   <td><span th:text="${a.startDate}"></span> – <span th:text="${a.endDate}"></span></td>
+   <td><strong th:text="${a.allocationPercent + '%'}"></strong></td><td th:text="${a.notes}"></td>
+   <td th:if="${canManage}"><form method="post" th:action="@{/resources/{id}/delete(id=${a.id})}" data-confirm="Remove this allocation?"><button class="btn btn-sm btn-outline-danger">Remove</button></form></td>
+  </tr>
+  <tr th:if="${#lists.isEmpty(allocations)}"><td th:colspan="${canManage ? 6 : 5}" class="text-center muted py-5">No resource allocations yet.</td></tr>
+ </tbody></table></div></section>
+<section class="panel mt-3" id="allocate" th:if="${canManage}"><div class="panel-head"><div><h5>Allocate an employee</h5><p class="muted mb-0">Only ACTIVE employees can be allocated.</p></div></div>
+<form method="post" th:action="@{/resources}" class="form-grid">
+ <select name="employeeId" required><option value="">Select employee</option><option th:each="e:${employees}" th:value="${e.id}" th:text="${e.fullName + ' · ' + e.employeeCode}"></option></select>
+ <select name="projectId" required><option value="">Select project</option><option th:each="p:${projects}" th:value="${p.id}" th:text="${p.projectCode + ' · ' + p.name}"></option></select>
+ <input type="date" name="startDate" required aria-label="Allocation start date"><input type="date" name="endDate" required aria-label="Allocation end date">
+ <input type="number" name="allocationPercent" min="1" max="100" step="0.5" placeholder="Allocation %" required><input name="notes" placeholder="Notes / responsibility">
+ <button class="btn btn-primary">Save allocation</button></form></section>
+</main></body></html>

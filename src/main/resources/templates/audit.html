@@ -1,0 +1,20 @@
+<!DOCTYPE html><html xmlns:th="http://www.thymeleaf.org"><head th:replace="~{fragments/layout :: head('Audit log')}"></head><body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+<div class="eyebrow">GOVERNANCE</div>
+<h1>Audit log</h1>
+<p class="muted">Read-only record of sign-ins, changes, approvals and denied access. Latest 200 events.</p>
+<div class="board-toolbar"><span class="pill">System events</span><div class="search-box"><i class="bi bi-search"></i><input type="search" placeholder="Search audit events..." data-table-search="#auditRows"></div></div>
+<section class="panel board-panel">
+ <div class="table-responsive border-0 rounded-0"><table class="table align-middle">
+  <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Entity</th><th>Details</th><th>IP</th></tr></thead>
+  <tbody id="auditRows">
+   <tr th:each="l:${logs}">
+    <td th:text="${l.createdAt}"></td><td th:text="${l.username}"></td>
+    <td><span class="tag" th:text="${l.action}"></span></td>
+    <td th:text="${l.entityType}"></td><td th:text="${l.details}"></td><td th:text="${l.ipAddress}"></td>
+   </tr>
+   <tr th:if="${#lists.isEmpty(logs)}"><td colspan="6" class="text-center muted py-5">No audit events yet.</td></tr>
+  </tbody></table></div>
+</section>
+</main></body></html>

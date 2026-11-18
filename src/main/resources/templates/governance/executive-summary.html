@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('MBPLC IT Governance & Audit Control Center')}"></head>
+<body>
+
+<!-- Sidebar + topbar (pure markup from layout fragment — no nested <body>) -->
+<div th:replace="~{fragments/layout :: nav}"></div>
+
+<!-- Main content -->
+<main class="app-main">
+    <section class="container-fluid py-4">
+
+        <!-- ============================================================
+             PAGE HEADER + 1-CLICK EXPORT
+             ============================================================ -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <div>
+                <h3 class="mb-1 fw-bold">CBS IT Governance &amp; Risk Control Center</h3>
+                <p class="text-muted mb-0">
+                    Aligned with Central Bank ICT Guidelines, ISO 27001 &amp;
+                    MBPLC Governance Standards (CBS-GOV-001 / 002 / 003)
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <a th:href="@{/governance/export/cbs-gov-003.docx}" class="btn btn-primary">
+                    <i class="bi bi-file-earmark-word me-1"></i> Export CBS-GOV-003 (.DOCX)
+                </a>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             EXECUTIVE KPI STRIP
+             ============================================================ -->
+        <div class="row g-3 mb-4">
+
+            <!-- Compliance Score -->
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <small class="text-muted text-uppercase fw-semibold">Governance Compliance Score</small>
+                        <h2 class="mt-2 mb-0 fw-bold"
+                            th:classappend="${govSummary.complianceScore >= 80 ? 'text-success'
+                                            : (govSummary.complianceScore >= 50 ? 'text-warning' : 'text-danger')}"
+                            th:text="${govSummary.complianceScore} + '%'">100%</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Single-Person Risks -->
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <small class="text-muted text-uppercase fw-semibold">Single-Person Risks (&lt; 2 at L3+)</small>
+                        <h2 class="mt-2 mb-0 fw-bold"
+                            th:classappend="${govSummary.singlePersonRiskCount > 0 ? 'text-danger' : 'text-success'}">
+                            <span th:text="${govSummary.singlePersonRiskCount}">0</span>
+                            <span class="text-muted fw-normal fs-6">/ <span th:text="${govSummary.totalSkillDomains}">0</span> domains</span>
+                        </h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SoD Conflicts -->
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <small class="text-muted text-uppercase fw-semibold">Active SoD Conflicts (CBS-GOV-002)</small>
+                        <h2 class="mt-2 mb-0 fw-bold"
+                            th:classappend="${govSummary.activeSodBreaches > 0 ? 'text-danger' : 'text-success'}"
+                            th:text="${govSummary.activeSodBreaches}">0</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overdue Readiness Tests -->
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <small class="text-muted text-uppercase fw-semibold">Overdue Backup Readiness Tests</small>
+                        <h2 class="mt-2 mb-0 fw-bold"
+                            th:classappend="${govSummary.overdueReadinessTests > 0 ? 'text-warning' : 'text-success'}"
+                            th:text="${govSummary.overdueReadinessTests}">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             CBS-GOV-003 : SINGLE-PERSON RISK TABLE
+             ============================================================ -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold py-3">
+                CBS-GOV-003: Critical Skill Domain &amp; Single-Person Risk Monitor
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>CBS Skill Domain</th>
+                        <th class="text-center">Staff at Level 3+</th>
+                        <th class="text-center">Single-Person Risk</th>
+                        <th>Qualified Personnel (L3+)</th>
+                        <th>Audit Compliance Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${govSummary.skillRisks}">
+                        <td class="fw-semibold" th:text="${item.skillName}">CBS Release</td>
+                        <td class="text-center fw-bold" th:text="${item.level3PlusCount}">1</td>
+                        <td class="text-center">
+                            <span th:if="${item.singlePersonRisk}" class="badge bg-danger">Yes (Action Required)</span>
+                            <span th:unless="${item.singlePersonRisk}" class="badge bg-success">No</span>
+                        </td>
+                        <td th:text="${#lists.isEmpty(item.qualifiedStaff) ? 'None' : #strings.listJoin(item.qualifiedStaff, ', ')}"></td>
+                        <td>
+                            <span th:if="${item.auditStatus == 'COMPLIANT'}"
+                                  class="badge bg-success-subtle text-success">Compliant</span>
+                            <span th:if="${item.auditStatus == 'MITIGATION_ACTIVE'}"
+                                  class="badge bg-warning-subtle text-warning-emphasis">Mitigation Plan Active</span>
+                            <span th:if="${item.auditStatus == 'UNMITIGATED_RISK'}"
+                                  class="badge bg-danger-subtle text-danger">Unmitigated Gap</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(govSummary.skillRisks)}">
+                        <td colspan="5" class="text-center text-muted py-4">
+                            No skill domains recorded yet.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             CBS-GOV-002 : SEGREGATION OF DUTIES CONFLICTS
+             ============================================================ -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold py-3">
+                CBS-GOV-002: Segregation of Duties (SoD) Conflict Register
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Staff ID</th>
+                        <th>Staff Name</th>
+                        <th>System</th>
+                        <th>Conflicting Roles</th>
+                        <th>Compensating Control</th>
+                        <th class="text-center">Severity</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="c : ${govSummary.sodConflicts}">
+                        <td class="fw-semibold" th:text="${c.staffId}">EMP001</td>
+                        <td th:text="${c.staffName}">Alice Rahman</td>
+                        <td th:text="${c.systemName}">CBS Core</td>
+                        <td>
+                            <span class="badge bg-secondary" th:text="${c.role1}">Role A</span>
+                            <span class="mx-1">↔</span>
+                            <span class="badge bg-secondary" th:text="${c.role2}">Role B</span>
+                        </td>
+                        <td th:text="${c.compensatingControl != null ? c.compensatingControl : '—'}">—</td>
+                        <td class="text-center">
+                            <span th:if="${c.severity == 'CRITICAL_BREACH'}"
+                                  class="badge bg-danger">CRITICAL BREACH</span>
+                            <span th:if="${c.severity == 'APPROVED_EXCEPTION'}"
+                                  class="badge bg-warning-subtle text-warning-emphasis">Approved Exception</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(govSummary.sodConflicts)}">
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No SoD conflicts detected.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             CBS-GOV-003 : BACKUP ROSTER READINESS
+             ============================================================ -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold py-3">
+                CBS-GOV-003: Backup &amp; Succession Roster Readiness
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Critical Activity</th>
+                        <th>Primary</th>
+                        <th>Backup 1</th>
+                        <th>Backup 2</th>
+                        <th>Last Readiness Test</th>
+                        <th class="text-center">Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="r : ${govSummary.rosterStatus}">
+                        <td class="fw-semibold"
+                            th:text="${r.roster.activity != null ? r.roster.activity.name : '-'}">CBS Release</td>
+                        <td th:text="${r.roster.primaryPerson != null ? r.roster.primaryPerson.fullName : '-'}">-</td>
+                        <td th:text="${r.roster.backup1 != null ? r.roster.backup1.fullName : '-'}">-</td>
+                        <td th:text="${r.roster.backup2 != null ? r.roster.backup2.fullName : '-'}">-</td>
+                        <td>
+                            <span th:if="${r.lastTestDate != null}" th:text="${r.lastTestDate}">2026-01-01</span>
+                            <span th:if="${r.lastTestDate == null}" class="text-muted">Pending Test</span>
+                        </td>
+                        <td class="text-center">
+                            <span th:if="${r.isOverdue}" class="badge bg-warning text-dark">TEST DUE</span>
+                            <span th:unless="${r.isOverdue}" class="badge bg-success">VERIFIED</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(govSummary.rosterStatus)}">
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No backup roster entries recorded.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </section>
+</main>
+
+</body>
+</html>

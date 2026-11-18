@@ -1,0 +1,33 @@
+<!DOCTYPE html><html xmlns:th="http://www.thymeleaf.org"><head th:replace="~{fragments/layout :: head('Project portfolio')}"></head><body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+<div class="eyebrow">WORKSPACE / PROJECTS</div>
+<div class="board-title-row"><div><h1>Project portfolio</h1><p class="muted mb-0">Plan, organize and track delivery across bank departments.</p></div><a href="#create-project" th:if="${canManage}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> New project</a></div>
+<div class="board-toolbar"><div class="d-flex gap-2 align-items-center flex-wrap"><span class="pill">All projects</span><div th:replace="~{fragments/layout :: unitFilter('/projects')}"></div><span class="muted" th:text="${#lists.size(projects)} + ' records'"></span></div><div class="search-box"><i class="bi bi-search"></i><input type="search" placeholder="Search projects..." data-table-search="#projectRows"></div></div>
+<section class="panel board-panel"><div class="panel-head"><div><h5>Projects board</h5><p class="muted mb-0">Ownership, schedule and delivery status.</p></div><a th:if="${canViewPeople}" href="/resources">Manage resource allocation →</a></div>
+<div class="table-responsive border-0 rounded-0"><table class="table align-middle">
+ <thead><tr><th>Project</th><th>Code</th><th>Manager</th><th>Schedule</th><th>Department</th><th>Unit</th><th>Status</th><th>Priority</th><th th:if="${canManage}">Change status</th></tr></thead>
+ <tbody id="projectRows">
+  <tr th:each="p:${projects}">
+   <td><strong th:text="${p.name}"></strong><div class="muted" th:text="${p.description}"></div></td>
+   <td><span class="muted" th:text="${p.projectCode}"></span></td>
+   <td th:text="${p.projectManager != null ? p.projectManager.fullName : 'Not assigned'}"></td>
+   <td><span th:text="${p.startDate != null ? p.startDate : '—'}"></span> – <span th:text="${p.endDate != null ? p.endDate : '—'}"></span></td>
+   <td th:text="${p.owningDepartment != null ? p.owningDepartment.name : '—'}"></td>
+   <td th:text="${p.owningUnit != null ? p.owningUnit.name : '—'}"></td>
+   <td><span class="status-pill" th:text="${p.status}"></span></td>
+   <td><span class="tag" th:classappend="'priority-' + ${#strings.toLowerCase(p.priority)}" th:text="${p.priority}"></span></td>
+   <td th:if="${canManage}"><form method="post" th:action="@{/projects/{id}/status(id=${p.id})}" class="d-flex gap-1"><select name="status" class="form-select form-select-sm"><option th:each="st:${projectStatuses}" th:value="${st}" th:text="${st}" th:selected="${st == p.status}"></option></select><button class="btn btn-sm btn-outline-primary">Save</button></form></td>
+  </tr>
+  <tr th:if="${#lists.isEmpty(projects)}"><td th:colspan="${canManage ? 9 : 8}" class="text-center muted py-5">No projects yet.</td></tr>
+ </tbody></table></div></section>
+<section class="panel mt-3" id="create-project" th:if="${canManage}"><div class="panel-head"><div><h5>Create a project</h5><p class="muted mb-0">Register a new bank initiative or delivery project.</p></div></div>
+<form method="post" th:action="@{/projects}" class="form-grid">
+ <input name="projectCode" placeholder="Project code" required maxlength="60"><input name="name" placeholder="Project name" required maxlength="180"><input name="description" placeholder="Short description">
+ <select name="departmentId" data-dept-select><option value="">Owning department</option><option th:each="d:${departments}" th:value="${d.id}" th:text="${d.name}"></option></select>
+ <select name="unitId" data-unit-select><option value="">Owning unit</option><option th:each="u:${units}" th:if="${u.active}" th:value="${u.id}" th:text="${u.name}" th:attr="data-dept=${u.department.id}"></option></select>
+ <select name="projectManagerId"><option value="">Project manager</option><option th:each="e:${employees}" th:value="${e.id}" th:text="${e.fullName}"></option></select>
+ <input type="date" name="startDate" aria-label="Start date"><input type="date" name="endDate" aria-label="End date">
+ <select name="priority"><option value="LOW">Low priority</option><option value="MEDIUM" selected>Medium priority</option><option value="HIGH">High priority</option><option value="CRITICAL">Critical priority</option></select>
+ <button class="btn btn-primary">Create project</button></form></section>
+</main></body></html>

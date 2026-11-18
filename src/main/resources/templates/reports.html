@@ -1,0 +1,63 @@
+<!DOCTYPE html><html xmlns:th="http://www.thymeleaf.org"><head th:replace="~{fragments/layout :: head('Reports')}"></head><body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container page">
+<div class="eyebrow">MANAGEMENT</div>
+<h1>Reports &amp; analytics</h1>
+<p class="muted">Portfolio snapshot. Open a report to view it, filter it, print it or export it to CSV (Excel).</p>
+
+<div class="row g-3 mt-2">
+ <div class="col-md-3"><div class="metric"><span>Employees</span><strong th:text="${employeeCount}"></strong></div></div>
+ <div class="col-md-3"><div class="metric"><span>Projects</span><strong th:text="${projectCount}"></strong></div></div>
+ <div class="col-md-3"><div class="metric"><span>Work items</span><strong th:text="${workCount}"></strong></div></div>
+ <div class="col-md-3"><div class="metric"><span>Pending approvals</span><strong th:text="${approvalCount}"></strong></div></div>
+</div>
+
+<section class="panel mt-4">
+ <div class="panel-head"><h5>Available reports</h5></div>
+ <div class="table-responsive"><table class="table">
+  <thead><tr><th>Report</th><th>What it shows</th><th>View</th><th>Export</th></tr></thead>
+  <tbody>
+   <tr><td>Skills report</td><td>Every employee skill, proficiency, assessment date and evidence (<span th:text="${skillsAssessed}"></span> assessments)</td>
+       <td><a class="btn btn-sm btn-primary" th:href="@{/reports/skills}">Open</a></td>
+       <td><a class="btn btn-sm btn-outline-secondary" th:href="@{/reports/skills/csv}">CSV</a></td></tr>
+   <tr><td>Job assignment report</td><td>Work items by project, assignee, status, due date, overdue flag</td>
+       <td><a class="btn btn-sm btn-primary" th:href="@{/reports/assignments}">Open</a></td>
+       <td><a class="btn btn-sm btn-outline-secondary" th:href="@{/reports/assignments/csv}">CSV</a></td></tr>
+   <tr><td>Approval report</td><td>All approval requests with decision, comments and dates</td>
+       <td><a class="btn btn-sm btn-primary" th:href="@{/reports/approvals}">Open</a></td>
+       <td><a class="btn btn-sm btn-outline-secondary" th:href="@{/reports/approvals/csv}">CSV</a></td></tr>
+   <tr><td>Pending approvals report</td><td>Requests waiting for a decision, oldest first, with days waiting</td>
+       <td><a class="btn btn-sm btn-primary" th:href="@{/reports/pending-approvals}">Open</a></td>
+       <td><a class="btn btn-sm btn-outline-secondary" th:href="@{/reports/pending-approvals/csv}">CSV</a></td></tr>
+   <tr><td>Credentials &amp; expiry report</td><td>Degrees, training and certifications with expiry and verification status (<span th:text="${credentialsPending}"></span> awaiting verification)</td>
+       <td><a class="btn btn-sm btn-primary" th:href="@{/reports/credentials}">Open</a></td>
+       <td><a class="btn btn-sm btn-outline-secondary" th:href="@{/reports/credentials/csv}">CSV</a></td></tr>
+   <tr><td colspan="4" class="eyebrow pt-3">TEAM-WISE (team = unit; filter by department or unit inside the report)</td></tr>
+   <tr><td>Team summary</td><td>People, workload, RACI, roster, cross-training and credential health per team</td>
+       <td><a class="btn btn-sm btn-primary" th:href="@{/reports/team-summary}">Open</a></td>
+       <td><a class="btn btn-sm btn-outline-secondary" th:href="@{/reports/team-summary/csv}">CSV</a></td></tr>
+   <tr><td>Team-wise RACI</td><td>RACI roles grouped by the team of each person, with the project owner</td>
+       <td><a class="btn btn-sm btn-primary" th:href="@{/reports/team-raci}">Open</a></td>
+       <td><a class="btn btn-sm btn-outline-secondary" th:href="@{/reports/team-raci/csv}">CSV</a></td></tr>
+   <tr><td>Team-wise backup roster</td><td>Primary / backup coverage of critical activities per team, with last readiness test</td>
+       <td><a class="btn btn-sm btn-primary" th:href="@{/reports/team-roster}">Open</a></td>
+       <td><a class="btn btn-sm btn-outline-secondary" th:href="@{/reports/team-roster/csv}">CSV</a></td></tr>
+   <tr><td>Team-wise cross-training plans</td><td>Mitigation actions per team with target date and days left</td>
+       <td><a class="btn btn-sm btn-primary" th:href="@{/reports/team-plans}">Open</a></td>
+       <td><a class="btn btn-sm btn-outline-secondary" th:href="@{/reports/team-plans/csv}">CSV</a></td></tr>
+  </tbody></table></div>
+</section>
+
+<div class="row g-3 mt-1">
+ <div class="col-md-6"><section class="panel"><div class="panel-head"><h5>Assignments by status</h5></div>
+  <table class="table"><tbody>
+   <tr th:each="s:${assignmentsByStatus}"><td th:text="${s.key}"></td><td th:text="${s.value}"></td></tr>
+   <tr th:if="${#maps.isEmpty(assignmentsByStatus)}"><td colspan="2" class="muted">No work items yet.</td></tr>
+  </tbody></table></section></div>
+ <div class="col-md-6"><section class="panel"><div class="panel-head"><h5>Approvals by status</h5></div>
+  <table class="table"><tbody>
+   <tr th:each="s:${approvalsByStatus}"><td th:text="${s.key}"></td><td th:text="${s.value}"></td></tr>
+   <tr th:if="${#maps.isEmpty(approvalsByStatus)}"><td colspan="2" class="muted">No approvals yet.</td></tr>
+  </tbody></table></section></div>
+</div>
+</main></body></html>

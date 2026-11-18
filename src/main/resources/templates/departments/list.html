@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('People & organization')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+    <div class="eyebrow">MANAGEMENT</div>
+    <h1>Departments</h1>
+
+    <!-- Toolbar -->
+    <div class="board-toolbar mt-4">
+        <span class="pill">Department directory</span>
+        <div class="d-flex align-items-center gap-2">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="search" placeholder="Search departments..." data-table-search="#departmentRows">
+            </div>
+            <a th:if="${canManage}" th:href="@{/departments/new}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> New department
+            </a>
+        </div>
+    </div>
+
+    <section class="panel mt-3">
+        <div class="panel-head">
+            <h5>Records</h5>
+            <span class="muted">Live database records</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>Units</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th class="text-end" th:if="${canManage}">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="departmentRows">
+                <tr th:if="${#lists.isEmpty(departments)}">
+                    <td colspan="6" class="muted text-center py-4">No departments found.</td>
+                </tr>
+                <tr th:each="d : ${departments}">
+                    <td th:text="${d.name}"></td>
+                    <td th:text="${d.code} ?: '—'"></td>
+                    <td><a th:href="@{/units(departmentId=${d.id})}" th:text="${unitCounts.getOrDefault(d.id, 0L)} + ' unit(s)'"></a></td>
+                    <td th:text="${d.description} ?: '—'"></td>
+                    <td>
+                        <span th:if="${d.active}" class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Active</span>
+                        <span th:unless="${d.active}" class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">Inactive</span>
+                    </td>
+                    <td class="text-end" th:if="${canManage}">
+                        <a th:if="${canManage}" th:href="@{/units/new(departmentId=${d.id})}" class="btn btn-sm btn-outline-secondary">+ Unit</a>
+                        <a th:href="@{/departments/{id}/edit(id=${d.id})}"
+                           class="btn btn-sm btn-outline-primary">Edit</a>
+                        <form th:action="@{/departments/{id}/delete(id=${d.id})}"
+                              method="post" class="d-inline"
+                              data-confirm="Delete this department?">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

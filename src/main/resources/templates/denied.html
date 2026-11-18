@@ -1,0 +1,11 @@
+<!DOCTYPE html><html xmlns:th="http://www.thymeleaf.org"><head th:replace="~{fragments/layout :: head('Access denied')}"></head><body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+<div class="eyebrow">SECURITY</div>
+<h1>Access denied</h1>
+<section class="panel mt-4">
+ <p>Your role (<strong th:text="${currentRole}">role</strong>) does not allow this action or page.</p>
+ <p class="muted">This attempt has been recorded in the audit log. If you need access, ask your ERM administrator.</p>
+ <a class="btn btn-primary" href="/">Back to overview</a>
+</section>
+</main></body></html>

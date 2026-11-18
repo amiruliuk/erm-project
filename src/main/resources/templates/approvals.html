@@ -1,0 +1,40 @@
+<!DOCTYPE html><html xmlns:th="http://www.thymeleaf.org"><head th:replace="~{fragments/layout :: head('Approval center')}"></head><body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+<div class="eyebrow">GOVERNANCE</div>
+<h1>Approval center</h1>
+<p class="muted" th:if="${canApprove}">You can approve or reject pending requests. You cannot decide requests you raised yourself, and a rejection needs a comment.</p>
+<p class="muted" th:unless="${canApprove}">Read-only view. Only users with the Approver role can approve or reject requests.</p>
+<section class="panel mt-3" th:if="${canManage}"><h5>Raise an approval request</h5>
+<form method="post" th:action="@{/approvals/request}" class="form-grid">
+ <select name="projectId" required><option value="">Project</option><option th:each="p:${projects}" th:value="${p.id}" th:text="${p.projectCode + ' - ' + p.name}"></option></select>
+ <select name="approvalType" required><option th:each="t:${approvalTypes}" th:value="${t}" th:text="${t}"></option></select>
+ <select name="approverId"><option value="">Any approver</option><option th:each="e:${employees}" th:value="${e.id}" th:text="${e.fullName}"></option></select>
+ <input name="comments" placeholder="Reason / note for the approver" maxlength="1000">
+ <button class="btn btn-primary">Submit request</button>
+</form></section>
+<div class="board-toolbar"><span class="pill">Approval requests</span><div class="search-box"><i class="bi bi-search"></i><input type="search" placeholder="Search approvals..." data-table-search="#approvalRows"></div></div>
+<section class="panel board-panel">
+ <div class="table-responsive border-0 rounded-0"><table class="table align-middle">
+  <thead><tr><th>Project</th><th>Type</th><th>Requested by</th><th>Approver</th><th>Status</th><th>Comments</th><th th:if="${canApprove}">Decision</th></tr></thead>
+  <tbody id="approvalRows">
+   <tr th:each="a:${approvals}">
+    <td th:text="${a.project.name}"></td>
+    <td th:text="${a.approvalType}"></td>
+    <td th:text="${a.requestedBy.fullName}"></td>
+    <td th:text="${a.approver != null ? a.approver.fullName : 'Not assigned'}"></td>
+    <td><span class="status-pill" th:text="${a.status}"></span></td>
+    <td th:text="${a.comments}"></td>
+    <td th:if="${canApprove}">
+     <form th:if="${a.status == 'PENDING'}" th:action="@{/approvals/{id}/decision(id=${a.id})}" method="post" class="d-flex gap-1">
+      <input name="comments" placeholder="Comment" class="form-control form-control-sm">
+      <button name="status" value="APPROVED" class="btn btn-sm btn-success">Approve</button>
+      <button name="status" value="REJECTED" class="btn btn-sm btn-outline-danger">Reject</button>
+     </form>
+     <span th:unless="${a.status == 'PENDING'}" class="muted">Decided</span>
+    </td>
+   </tr>
+   <tr th:if="${#lists.isEmpty(approvals)}"><td colspan="7" class="text-center muted py-5">No approval requests.</td></tr>
+  </tbody></table></div>
+</section>
+</main></body></html>

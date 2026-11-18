@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Units')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+    <div class="eyebrow">MANAGEMENT</div>
+    <div class="board-title-row">
+        <div>
+            <h1>Units</h1>
+            <p class="muted mb-0">Sections / desks inside each department. Open a unit to manage its people, projects, tasks, allocation, RACI, roster and credentials in one place.</p>
+        </div>
+        <a th:if="${canManage}" th:href="@{/units/new(departmentId=${departmentId})}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> New unit
+        </a>
+    </div>
+
+    <div class="board-toolbar">
+        <form method="get" th:action="@{/units}" class="d-flex gap-2 align-items-center">
+            <span class="pill">Department</span>
+            <select name="departmentId" class="form-select form-select-sm" style="width:auto">
+                <option value="">All departments</option>
+                <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}"
+                        th:selected="${departmentId != null and d.id == departmentId}"></option>
+            </select>
+            <button class="btn btn-sm btn-primary">Apply</button>
+            <a th:if="${departmentId != null}" class="btn btn-sm btn-outline-secondary" th:href="@{/units}">Clear</a>
+        </form>
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="search" placeholder="Search units..." data-table-search="#unitRows">
+        </div>
+    </div>
+
+    <section class="panel board-panel">
+        <div class="panel-head">
+            <h5>Unit directory</h5>
+            <span class="muted" th:text="${#lists.size(units)} + ' units'"></span>
+        </div>
+        <div class="table-responsive border-0 rounded-0">
+            <table class="table align-middle">
+                <thead>
+                <tr>
+                    <th>Department</th>
+                    <th>Unit</th>
+                    <th>Code</th>
+                    <th>Unit head</th>
+                    <th>Active members</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="unitRows">
+                <tr th:if="${#lists.isEmpty(units)}">
+                    <td colspan="7" class="muted text-center py-4">No units yet. Create the first unit inside a department.</td>
+                </tr>
+                <tr th:each="u : ${units}">
+                    <td th:text="${u.department.name}"></td>
+                    <td><a th:href="@{/units/{id}(id=${u.id})}"><strong th:text="${u.name}"></strong></a>
+                        <div class="muted" th:text="${u.description}"></div></td>
+                    <td th:text="${u.code} ?: '—'"></td>
+                    <td th:text="${u.unitHead != null ? u.unitHead.fullName : '—'}"></td>
+                    <td th:text="${memberCounts.getOrDefault(u.id, 0L)}"></td>
+                    <td>
+                        <span th:if="${u.active}" class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Active</span>
+                        <span th:unless="${u.active}" class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">Inactive</span>
+                    </td>
+                    <td class="text-end">
+                        <a th:href="@{/units/{id}(id=${u.id})}" class="btn btn-sm btn-outline-primary">Open</a>
+                        <a th:if="${canManage}" th:href="@{/units/{id}/edit(id=${u.id})}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        <form th:if="${canManage}" th:action="@{/units/{id}/delete(id=${u.id})}" method="post" class="d-inline"
+                              data-confirm="Delete this unit?">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

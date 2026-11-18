@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('CBS skill matrix')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+    <div class="eyebrow">GOVERNANCE · CBS-GOV-003</div>
+    <h1>Skill matrix</h1>
+    <p class="muted" th:if="${scope == 'critical'}">
+        Critical CBS skills only. Proficiency scale 0–5. A critical skill with fewer than
+        two people at level 3 or above is flagged as a single-person risk.
+    </p>
+    <p class="muted" th:if="${scope == 'all'}">
+        All skills. Proficiency scale 0–5. Single-person-risk flag applies to critical skills only.
+    </p>
+
+    <div class="board-toolbar">
+        <div class="d-flex gap-2 align-items-center">
+            <span class="pill">Matrix</span>
+            <a class="btn btn-sm"
+               th:classappend="${scope == 'critical'} ? 'btn-primary' : 'btn-outline-primary'"
+               th:href="@{/governance/skill-matrix(scope='critical')}">Critical skills</a>
+            <a class="btn btn-sm"
+               th:classappend="${scope == 'all'} ? 'btn-primary' : 'btn-outline-primary'"
+               th:href="@{/governance/skill-matrix(scope='all')}">All skills</a>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-sm btn-outline-primary"
+               th:href="@{/governance/skill-matrix(scope=${scope}, format='csv')}">
+                <i class="bi bi-download"></i> CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="panel mt-3">
+        <div class="panel-head"><h5>Legend</h5></div>
+        <div class="d-flex gap-3 flex-wrap">
+            <span><span class="status-pill" style="background:#e9ecef;color:#495057">0</span> No knowledge</span>
+            <span><span class="status-pill" style="background:#e9ecef;color:#495057">1</span> Beginner; full supervision</span>
+            <span><span class="status-pill" style="background:#fff3cd;color:#664d03">2</span> Basic; with guidance</span>
+            <span><span class="status-pill" style="background:#d1e7dd;color:#0f5132">3</span> Intermediate; independent</span>
+            <span><span class="status-pill" style="background:#a3cfbb;color:#0f5132">4</span> Advanced</span>
+            <span><span class="status-pill" style="background:#a3cfbb;color:#0f5132">5</span> Expert; can train/cover</span>
+            <span><span class="status-pill" style="background:#f8d7da;color:#842029">RISK</span> &lt; 2 people at level 3+</span>
+        </div>
+    </div>
+
+    <!-- Matrix -->
+    <section class="panel mt-3">
+        <div class="panel-head">
+            <h5>Matrix</h5>
+            <span class="muted">Rows: skills · Columns grouped by unit (department / unit)</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                <!-- Row 1: unit names, one th per group with colspan -->
+                <tr>
+                    <th rowspan="2">Skill</th>
+                    <th rowspan="2">Critical</th>
+                    <th th:each="g : ${report.groups()}"
+                        th:colspan="${#lists.size(g.employeeCodes())}"
+                        class="text-center"
+                        th:text="${g.departmentName()}"></th>
+                    <th rowspan="2" class="text-end">At level 3+</th>
+                    <th rowspan="2">Single-person risk</th>
+                </tr>
+                <!-- Row 2: employee codes within each group -->
+                <tr>
+                    <th:block th:each="g : ${report.groups()}">
+                        <th th:each="code : ${g.employeeCodes()}"
+                            class="text-center"
+                            th:text="${code}"></th>
+                    </th:block>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="row : ${report.rows()}">
+                    <td th:text="${row.skillName()}"></td>
+                    <td>
+                        <span th:if="${row.critical()}" class="status-pill"
+                              style="background:#cfe2ff;color:#084298">CRITICAL</span>
+                        <span th:unless="${row.critical()}" class="muted">—</span>
+                    </td>
+                    <!-- One block per group, one <td> per employee within the group -->
+                    <th:block th:each="g : ${row.groups()}">
+                        <td th:each="cell : ${g.cellsForGroup()}" class="text-center">
+                            <span class="status-pill"
+                                  th:style="${cell.level() <= 1} ? 'background:#e9ecef;color:#495057'
+                                            : (${cell.level() == 2} ? 'background:#fff3cd;color:#664d03'
+                                            : (${cell.level() == 3} ? 'background:#d1e7dd;color:#0f5132'
+                                            : 'background:#a3cfbb;color:#0f5132'))"
+                                  th:text="${cell.level()}"></span>
+                        </td>
+                    </th:block>
+                    <td class="text-end" th:text="${row.peopleAtLevel3Plus()}"></td>
+                    <td>
+                        <span th:if="${row.singlePersonRisk()}" class="status-pill"
+                              style="background:#f8d7da;color:#842029">RISK</span>
+                        <span th:unless="${row.singlePersonRisk()}" class="status-pill"
+                              style="background:#d1e7dd;color:#0f5132">OK</span>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(report.rows())}">
+                    <td th:colspan="${4 + #lists.size(report.groups())}" class="muted">No skills recorded yet.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

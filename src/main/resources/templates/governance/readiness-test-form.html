@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Record readiness test')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+    <div class="eyebrow">GOVERNANCE · CBS-GOV-003</div>
+    <h1>Record readiness test</h1>
+
+    <section class="panel mt-3">
+        <div class="panel-head">
+            <h5 th:text="${roster.activity.name}"></h5>
+            <span class="muted" th:text="'Primary: ' + ${roster.primaryPerson.fullName}"></span>
+        </div>
+        <p class="muted">
+            The test must be performed by one of the backups, with the primary absent or observing.
+        </p>
+
+        <p th:if="${#lists.isEmpty(backups)}" class="muted">
+            No backup is assigned to this activity yet. Assign at least one backup on the roster first.
+        </p>
+
+        <form th:unless="${#lists.isEmpty(backups)}" method="post"
+              th:action="@{/governance/roster/{id}/test(id=${roster.id})}"
+              class="form-grid" enctype="multipart/form-data">
+            <select name="performedById" required>
+                <option value="">Performed by (backup)</option>
+                <option th:each="b : ${backups}" th:value="${b.id}"
+                        th:text="${b.employeeCode + ' — ' + b.fullName}"></option>
+            </select>
+            <input type="date" name="testedOn" required
+                   th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"
+                   th:max="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}">
+            <select name="result" required>
+                <option value="PASS">PASS</option>
+                <option value="PARTIAL" selected>PARTIAL</option>
+                <option value="FAIL">FAIL</option>
+            </select>
+            <textarea name="notes" rows="4" maxlength="2000" placeholder="What was done, what was missing"></textarea>
+            <input type="file" name="file" accept="application/pdf,image/png,image/jpeg">
+            <button type="submit" class="btn btn-primary">Save test</button>
+            <a class="btn btn-outline-secondary" th:href="@{/governance/backup-roster}">Cancel</a>
+        </form>
+    </section>
+</main>
+</body>
+</html>

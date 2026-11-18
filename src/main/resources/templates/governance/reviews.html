@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Governance reviews')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+    <div class="eyebrow">GOVERNANCE · CBS-GOV-003</div>
+    <h1>Governance reviews</h1>
+    <p class="muted">
+        Six-monthly reviews of the CBS skill matrix and backup roster.
+        Completing a review schedules the next one automatically.
+    </p>
+
+    <div class="board-toolbar">
+        <span class="pill">Review schedule</span>
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="search" placeholder="Search reviews..." data-table-search="#reviewRows">
+        </div>
+    </div>
+
+    <section class="panel mt-3">
+        <div class="panel-head">
+            <h5>Reviews</h5>
+            <span class="muted">Scope · Owner · Due · Completed · Outcome</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Scope</th>
+                    <th>Owner</th>
+                    <th>Due on</th>
+                    <th>Completed on</th>
+                    <th>Outcome</th>
+                    <th th:if="${canManage}">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="reviewRows">
+                <tr th:each="r : ${reviews}">
+                    <td th:text="${r.scope}"></td>
+                    <td th:text="${r.owner.fullName}"></td>
+                    <td th:text="${r.dueOn}"></td>
+                    <td th:text="${r.completedOn != null ? r.completedOn : '—'}"></td>
+                    <td>
+                        <span th:if="${r.outcome == null}" class="status-pill"
+                              style="background:#e9ecef;color:#495057">OPEN</span>
+                        <span th:if="${r.outcome != null and r.outcome.name() == 'PASS'}"
+                              class="status-pill" style="background:#d1e7dd;color:#0f5132">PASS</span>
+                        <span th:if="${r.outcome != null and r.outcome.name() == 'PARTIAL'}"
+                              class="status-pill" style="background:#fff3cd;color:#664d03">PARTIAL</span>
+                        <span th:if="${r.outcome != null and r.outcome.name() == 'FAIL'}"
+                              class="status-pill" style="background:#f8d7da;color:#842029">FAIL</span>
+                    </td>
+                    <td th:if="${canManage}">
+                        <a class="btn btn-sm btn-outline-primary"
+                           th:if="${r.completedOn == null}"
+                           th:href="@{/governance/reviews/{id}(id=${r.id})}">Open</a>
+                        <span th:if="${r.completedOn != null}" class="muted">—</span>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(reviews)}">
+                    <td colspan="6" class="muted">No reviews scheduled.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- New review form -->
+    <section class="panel mt-4" th:if="${canManage}">
+        <h5>Schedule a review</h5>
+        <form method="post" th:action="@{/governance/reviews}" class="form-grid">
+            <input name="scope" placeholder="Scope (e.g. CBS-GOV-003)" value="CBS-GOV-003" required>
+            <select name="ownerId" required>
+                <option value="">Owner</option>
+                <option th:each="e : ${employees}" th:value="${e.id}"
+                        th:text="${e.employeeCode + ' — ' + e.fullName}"></option>
+            </select>
+            <input type="date" name="dueOn" required>
+            <button type="submit" class="btn btn-primary">Schedule</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('People & organization')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+    <div class="eyebrow">MANAGEMENT</div>
+    <h1 th:text="${department.id == null} ? 'New department' : 'Edit department'">Department</h1>
+
+    <section class="panel mt-4">
+        <div class="panel-head">
+            <h5>Details</h5>
+            <span class="muted">Name is unique; code is optional but must also be unique.</span>
+        </div>
+
+        <form th:action="${department.id == null}
+                          ? @{/departments}
+                          : @{/departments/{id}(id=${department.id})}"
+              th:object="${department}" method="post"
+              class="form-grid" novalidate>
+
+            <input type="hidden" th:if="${department.id != null}" th:field="*{id}"/>
+
+            <div>
+                <label class="form-label" for="name">Name <span class="text-danger">*</span></label>
+                <input type="text" id="name" th:field="*{name}"
+                       placeholder="e.g. Risk Management"
+                       required
+                       th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}"
+                     th:errors="*{name}"></div>
+            </div>
+
+            <div>
+                <label class="form-label" for="code">Code</label>
+                <input type="text" id="code" th:field="*{code}"
+                       placeholder="e.g. RISK"
+                       th:classappend="${#fields.hasErrors('code')} ? 'is-invalid'">
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('code')}"
+                     th:errors="*{code}"></div>
+            </div>
+
+            <div class="grid-span-2">
+                <label class="form-label" for="description">Description</label>
+                <textarea id="description" th:field="*{description}"
+                          class="form-control" rows="3"
+                          placeholder="Short description of this department"
+                          th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"></textarea>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('description')}"
+                     th:errors="*{description}"></div>
+            </div>
+
+            <div class="form-check form-switch grid-span-2">
+                <input type="checkbox" id="active" th:field="*{active}"
+                       class="form-check-input" role="switch">
+                <label class="form-check-label" for="active">
+                    Active
+                    <small class="muted d-block">Inactive departments are hidden from pickers.</small>
+                </label>
+            </div>
+
+            <div class="grid-span-2 d-flex gap-2 pt-2">
+                <button type="submit" class="btn btn-primary"
+                        th:text="${department.id == null} ? 'Create department' : 'Save changes'">
+                    Save
+                </button>
+                <a th:href="@{/departments}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>

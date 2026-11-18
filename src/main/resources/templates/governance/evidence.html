@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Evidence register')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+    <div class="eyebrow">GOVERNANCE · CBS-GOV-003</div>
+    <h1>Evidence register</h1>
+    <p class="muted">
+        Runbooks, training attendance, readiness-test results and review minutes.
+        Evidence starts as PENDING and must be verified by an approver or auditor.
+    </p>
+
+    <div class="board-toolbar">
+        <span class="pill">Evidence</span>
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="search" placeholder="Search evidence..." data-table-search="#evidenceRows">
+        </div>
+    </div>
+
+    <!-- Pending verification -->
+    <section class="panel mt-3" th:if="${not #lists.isEmpty(pending)}">
+        <div class="panel-head">
+            <h5>Awaiting verification</h5>
+            <span class="muted" th:text="${#lists.size(pending)} + ' item(s)'"></span>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Recorded on</th>
+                    <th>Recorded by</th>
+                    <th>File</th>
+                    <th th:if="${canApprove or canAudit}">Verify</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="e : ${pending}">
+                    <td th:text="${e.title}"></td>
+                    <td th:text="${e.type}"></td>
+                    <td th:text="${e.recordedOn}"></td>
+                    <td th:text="${e.recordedBy}"></td>
+                    <td>
+                        <a th:if="${e.fileName != null}"
+                           th:href="@{/evidence/{id}/download(id=${e.id})}"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-paperclip"></i>
+                        </a>
+                        <span th:unless="${e.fileName != null}" class="muted">—</span>
+                    </td>
+                    <td th:if="${canApprove or canAudit}">
+                        <form th:action="@{/governance/evidence/{id}/verify(id=${e.id})}"
+                              method="post" class="d-flex gap-1">
+                            <input name="notes" placeholder="Notes (optional)" class="form-control form-control-sm">
+                            <button name="status" value="VERIFIED"
+                                    class="btn btn-sm btn-outline-success" type="submit">Verify</button>
+                            <button name="status" value="REJECTED"
+                                    class="btn btn-sm btn-outline-danger" type="submit">Reject</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- All evidence -->
+    <section class="panel mt-3">
+        <div class="panel-head">
+            <h5>All evidence</h5>
+            <span class="muted">Filter and search the full register</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Recorded on</th>
+                    <th>Recorded by</th>
+                    <th>Status</th>
+                    <th>Verified by</th>
+                    <th>Verified on</th>
+                    <th>File</th>
+                </tr>
+                </thead>
+                <tbody id="evidenceRows">
+                <tr th:each="e : ${all}">
+                    <td th:text="${e.title}"></td>
+                    <td th:text="${e.type}"></td>
+                    <td th:text="${e.recordedOn}"></td>
+                    <td th:text="${e.recordedBy}"></td>
+                    <td>
+                        <span th:if="${e.verificationStatus.name() == 'PENDING'}"
+                              class="status-pill" style="background:#fff3cd;color:#664d03">PENDING</span>
+                        <span th:if="${e.verificationStatus.name() == 'VERIFIED'}"
+                              class="status-pill" style="background:#d1e7dd;color:#0f5132">VERIFIED</span>
+                        <span th:if="${e.verificationStatus.name() == 'REJECTED'}"
+                              class="status-pill" style="background:#f8d7da;color:#842029">REJECTED</span>
+                    </td>
+                    <td th:text="${e.verifiedBy != null ? e.verifiedBy.fullName : '—'}"></td>
+                    <td th:text="${e.verifiedOn != null ? e.verifiedOn : '—'}"></td>
+                    <td>
+                        <a th:if="${e.fileName != null}"
+                           th:href="@{/evidence/{id}/download(id=${e.id})}"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-paperclip"></i>
+                        </a>
+                        <span th:unless="${e.fileName != null}" class="muted">—</span>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(all)}">
+                    <td colspan="8" class="muted">No evidence recorded yet.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Upload form -->
+    <section class="panel mt-4" th:if="${canManage}">
+        <h5>Add evidence</h5>
+        <form method="post" th:action="@{/governance/evidence}"
+              class="form-grid" enctype="multipart/form-data">
+            <input name="title" placeholder="Title (e.g. CBS release runbook)" required>
+            <select name="type" required>
+                <option value="">Type</option>
+                <option value="RUNBOOK">RUNBOOK</option>
+                <option value="TRAINING_ATTENDANCE">TRAINING_ATTENDANCE</option>
+                <option value="READINESS_TEST_RESULT">READINESS_TEST_RESULT</option>
+                <option value="REVIEW_MINUTES">REVIEW_MINUTES</option>
+                <option value="OTHER">OTHER</option>
+            </select>
+            <input type="date" name="recordedOn" th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" required>
+            <input type="file" name="file" accept="application/pdf,image/png,image/jpeg" required>
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

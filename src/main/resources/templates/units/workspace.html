@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Unit workspace')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+    <div class="eyebrow" th:text="'UNIT WORKSPACE / ' + ${#strings.toUpperCase(ws.departmentName)}">UNIT WORKSPACE</div>
+    <div class="board-title-row">
+        <div>
+            <h1 th:text="${ws.name}">Unit</h1>
+            <p class="muted mb-0">
+                <span th:text="${ws.departmentName}"></span>
+                <span th:if="${ws.code != null}" th:text="' · ' + ${ws.code}"></span>
+                · Head: <strong th:text="${ws.headName != null ? ws.headName : 'not assigned'}"></strong>
+                <span th:unless="${ws.active}" class="badge bg-secondary-subtle text-secondary-emphasis border ms-2">Inactive</span>
+            </p>
+            <p class="muted mb-0" th:if="${ws.description != null}" th:text="${ws.description}"></p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a th:href="@{/employees(unitId=${ws.id})}" class="btn btn-outline-primary">People</a>
+            <a th:href="@{/projects(unitId=${ws.id})}" class="btn btn-outline-primary">Projects</a>
+            <a th:href="@{/work(unitId=${ws.id})}" class="btn btn-outline-primary">Tasks</a>
+            <a th:href="@{/resources(unitId=${ws.id})}" class="btn btn-outline-primary">Allocation</a>
+            <a th:href="@{/raci(unitId=${ws.id})}" class="btn btn-outline-primary">RACI</a>
+            <a th:href="@{/reports/team-summary(unit=${ws.id})}" class="btn btn-outline-primary">Report</a>
+            <a th:if="${canManage}" th:href="@{/units/{id}/edit(id=${ws.id})}" class="btn btn-primary">Edit unit</a>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+        <div class="col-6 col-lg-4 col-xl" th:each="k : ${ws.kpis}">
+            <div class="metric" style="min-height:104px">
+                <span th:text="${k.key}"></span>
+                <strong th:text="${k.value}">0</strong>
+            </div>
+        </div>
+    </div>
+
+    <section class="panel mt-3" th:each="sec : ${ws.sections}">
+        <div class="panel-head">
+            <h5 th:text="${sec.title}">Section</h5>
+            <span class="muted" th:text="${#lists.size(sec.rows)} + ' row(s)'"></span>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead><tr><th th:each="h : ${sec.headers}" th:text="${h}"></th></tr></thead>
+                <tbody>
+                <tr th:each="r : ${sec.rows}"><td th:each="c : ${r}" th:text="${c}"></td></tr>
+                <tr th:if="${#lists.isEmpty(sec.rows)}">
+                    <td th:colspan="${#lists.size(sec.headers)}" class="muted">Nothing to show.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

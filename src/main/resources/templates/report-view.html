@@ -1,0 +1,48 @@
+<!DOCTYPE html><html xmlns:th="http://www.thymeleaf.org"><head th:replace="~{fragments/layout :: head('Report')}"></head><body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+<div class="eyebrow">REPORT</div>
+<h1 th:text="${report.title}">Report</h1>
+<p class="muted" th:text="${report.description}"></p>
+
+<section class="panel mt-3">
+ <div class="d-flex flex-wrap gap-2 align-items-center">
+  <form th:if="${teams != null}" method="get" th:action="@{/reports/{t}(t=${type})}" class="d-flex flex-wrap gap-2 align-items-center">
+   <label class="muted">Department</label>
+   <select name="team" class="form-select form-select-sm" style="width:auto">
+    <option value="">All departments</option>
+    <option th:each="d:${teams}" th:value="${d.id}" th:text="${d.name}" th:selected="${team != null and d.id == team}"></option>
+   </select>
+   <label class="muted">Unit</label>
+   <select name="unit" class="form-select form-select-sm" style="width:auto">
+    <option value="">All units</option>
+    <option th:each="u:${unitOptions}" th:value="${u.id}" th:text="${u.department.name + ' › ' + u.name}" th:selected="${unit != null and u.id == unit}"></option>
+   </select>
+   <button class="btn btn-sm btn-primary">Apply</button>
+  </form>
+  <form th:if="${!statuses.isEmpty()}" method="get" th:action="@{/reports/{t}(t=${type})}" class="d-flex gap-2 align-items-center">
+   <label class="muted">Status</label>
+   <select name="status" class="form-select form-select-sm" style="width:auto">
+    <option value="">All</option>
+    <option th:each="s:${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == status}"></option>
+   </select>
+   <button class="btn btn-sm btn-primary">Apply</button>
+  </form>
+  <a th:if="${teams != null}" class="btn btn-sm btn-outline-secondary ms-auto" th:href="@{/reports/{t}/csv(t=${type},team=${team != null ? team : ''},unit=${unit != null ? unit : ''})}">Export CSV</a>
+  <a th:if="${teams == null and status == ''}" class="btn btn-sm btn-outline-secondary ms-auto" th:href="@{/reports/{t}/csv(t=${type})}">Export CSV</a>
+  <a th:if="${teams == null and status != ''}" class="btn btn-sm btn-outline-secondary ms-auto" th:href="@{/reports/{t}/csv(t=${type},status=${status})}">Export CSV</a>
+  <button type="button" class="btn btn-sm btn-outline-secondary" data-print>Print</button>
+  <a class="btn btn-sm btn-outline-secondary" th:href="@{/reports}">Back</a>
+ </div>
+</section>
+
+<section class="panel mt-3">
+ <div class="panel-head"><h5>Results</h5><span class="muted" th:text="${#lists.size(report.rows)} + ' row(s)'"></span></div>
+ <div class="table-responsive"><table class="table">
+  <thead><tr><th th:each="h:${report.headers}" th:text="${h}"></th></tr></thead>
+  <tbody>
+   <tr th:each="r:${report.rows}"><td th:each="c:${r}" th:text="${c}"></td></tr>
+   <tr th:if="${#lists.isEmpty(report.rows)}"><td th:colspan="${#lists.size(report.headers)}" class="muted">No records match.</td></tr>
+  </tbody></table></div>
+</section>
+</main></body></html>

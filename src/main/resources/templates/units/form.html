@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Unit')}"></head>
+
+<body>
+<div th:replace="~{fragments/layout :: nav}"></div>
+<main class="container-fluid page">
+    <div class="eyebrow">MANAGEMENT</div>
+    <h1 th:text="${unit.id == null} ? 'New unit' : 'Edit unit'">Unit</h1>
+
+    <section class="panel mt-4">
+        <div class="panel-head">
+            <h5>Details</h5>
+            <span class="muted">A unit belongs to one department. The name is unique inside its department; the code (optional) is unique overall.</span>
+        </div>
+
+        <form th:action="${unit.id == null} ? @{/units} : @{/units/{id}(id=${unit.id})}" method="post" class="form-grid">
+            <div>
+                <label class="form-label" for="name">Name <span class="text-danger">*</span></label>
+                <input type="text" id="name" name="name" th:value="${unit.name}" required maxlength="200"
+                       placeholder="e.g. Core Banking Support">
+            </div>
+
+            <div>
+                <label class="form-label" for="code">Code</label>
+                <input type="text" id="code" name="code" th:value="${unit.code}" maxlength="50" placeholder="e.g. IT-CBS">
+            </div>
+
+            <div>
+                <label class="form-label" for="departmentId">Department <span class="text-danger">*</span></label>
+                <select id="departmentId" name="departmentId" required>
+                    <option value="">Select department</option>
+                    <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}"
+                            th:selected="${unit.department != null and d.id == unit.department.id}"></option>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" for="unitHeadId">Unit head</label>
+                <select id="unitHeadId" name="unitHeadId">
+                    <option value="">None</option>
+                    <option th:each="e : ${employees}"
+                            th:if="${e.employmentStatus == 'ACTIVE'}"
+                            th:value="${e.id}"
+                            th:text="${e.fullName + ' (' + e.employeeCode + ')' + (e.department != null ? ' — ' + e.department.name : '')}"
+                            th:selected="${unit.unitHead != null and e.id == unit.unitHead.id}"></option>
+                </select>
+                <small class="muted">Must be an active employee of the selected department.</small>
+            </div>
+
+            <div class="grid-span-2" style="grid-column:1/-1">
+                <label class="form-label" for="description">Description</label>
+                <textarea id="description" name="description" class="form-control" rows="3" maxlength="1000"
+                          th:text="${unit.description}" placeholder="What this unit is responsible for"></textarea>
+            </div>
+
+            <div class="form-check form-switch" style="grid-column:1/-1">
+                <input type="checkbox" id="active" name="active" value="true" class="form-check-input" role="switch"
+                       th:checked="${unit.id == null or unit.active}">
+                <label class="form-check-label" for="active">
+                    Active
+                    <small class="muted d-block">Inactive units cannot receive new people.</small>
+                </label>
+            </div>
+
+            <div class="d-flex gap-2 pt-2" style="grid-column:1/-1">
+                <button type="submit" class="btn btn-primary" th:text="${unit.id == null} ? 'Create unit' : 'Save changes'">Save</button>
+                <a th:href="${unit.id == null} ? @{/units} : @{/units/{id}(id=${unit.id})}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>
